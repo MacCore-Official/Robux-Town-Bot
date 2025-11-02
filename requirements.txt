@@ -1,3 +1,2 @@
 discord.py
 python-dotenv
-sqlite3-binary  # only if you use sqlite
