@@ -1,0 +1,19 @@
+# Never upload secrets or local DB
+.env
+*.db
+/data/
+logs/
+
+# Python junk
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+
+# OS junk
+.DS_Store
+Thumbs.db
