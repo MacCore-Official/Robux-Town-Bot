@@ -1,0 +1,51 @@
+name: Deploy to OriHost via SFTP
+
+on:
+  push:
+    branches: [ main ]   # change if you are using "master" or another branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload files to OriHost (SFTP)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ORI_SFTP_HOST }}
+          username: ${{ secrets.ORI_SFTP_USER }}
+          password: ${{ secrets.ORI_SFTP_PASS }}
+          port: ${{ secrets.ORI_SFTP_PORT }}
+          source: |
+            ./*
+          target: /home/container
+          overwrite: true
+          exclude: |
+            .git/**
+            .github/**
+            .env
+            *.db
+            **/*.db
+            __pycache__/**
+            *.pyc
+            venv/**
+            .venv/**
+            node_modules/**
+            README.md
+
+      # OPTIONAL - Auto restart OriHost bot after upload  
+      - name: Restart OriHost server (Pterodactyl API)
+        if: ${{ secrets.ORI_RESTART_ENABLED == 'true' }}
+        env:
+          PANEL_URL: ${{ secrets.ORI_PANEL_URL }}
+          CLIENT_API_KEY: ${{ secrets.ORI_CLIENT_API_KEY }}
+          SERVER_UUID: ${{ secrets.ORI_SERVER_UUID }}
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer $CLIENT_API_KEY" \
+            -H "Content-Type: application/json" \
+            "$PANEL_URL/api/client/servers/$SERVER_UUID/power" \
+            --data '{"signal":"restart"}' || true
